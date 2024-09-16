@@ -20,7 +20,7 @@ export default function Document() {
           content="Broken Link Checker - Check for broken links in real-time"
         />
       </Head>
-      <body className="bg-gray-100">
+      <body>
         <Main />
         <NextScript />
       </body>

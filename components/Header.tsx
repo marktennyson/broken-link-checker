@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import {
   Navbar,
   NavbarBrand,
@@ -11,16 +11,12 @@ import Logo from "./Logos/Logo";
 import ThemeSwitcher from "./ThemeSwitcher";
 
 const Header: React.FC = () => {
-  const [currentTheme, setCurrentTheme] = useState<string | undefined>(
-    undefined
-  );
-  const bgColor = currentTheme === "light" ? "bg-black/90" : "bg-transparent";
-  const logoTextColor = currentTheme === "light" ? "text-white" : "text-black";
+  const [, setCurrentTheme] = React.useState<string | undefined>(undefined);
   return (
-    <Navbar className={bgColor}>
+    <Navbar className={"bg-black"}>
       <NavbarBrand className="justify-left">
         <Logo />
-        <p className={`${logoTextColor} font-bold text-inherit pl-4`}>
+        <p className={`text-white font-bold text-inherit pl-4`}>
           Broken Link Checker
         </p>
       </NavbarBrand>
