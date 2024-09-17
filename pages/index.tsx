@@ -11,21 +11,28 @@ import LinksLogo from "@/components/Logos/Links";
 import GlassLogo from "@/components/Logos/Glass";
 import useSWRMutation from "swr/mutation";
 import { fetcher } from "@/lib/Fetcher";
-import EachLinkChecker from "@/components/EachLinkChecker";
+import dynamic from "next/dynamic";
+
+const EachLinkChecker = dynamic(() => import("@/components/EachLinkChecker"), {
+  loading: () => <p>Loading...</p>,
+  ssr: true,
+  suspense: true,
+});
 
 export default function Home() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [websiteUrl, setWebsiteUrl] = useState("");
-  const [baseUrls, setBaseUrls] = useState<string[] | null>(null);
+  const [baseUrls, setBaseUrls] = useState<
+    { url: string; parentUrl: string | null }[] | null
+  >(null); // Updated to support url and parentUrl
   const [error, setError] = useState<string | null>(null);
   const [linkStatuses, setLinkStatuses] = useState<
     Record<string, "success" | "danger">
   >({}); // Map to hold the status of each URL
 
-  const { trigger: fetchEndpointsTrigger } = useSWRMutation<string[]>(
-    `/api/links?url=${encodeURIComponent(websiteUrl)}`,
-    fetcher
-  );
+  const { trigger: fetchEndpointsTrigger } = useSWRMutation<
+    { url: string; parentUrl: string | null }[]
+  >(`/api/links?url=${encodeURIComponent(websiteUrl)}`, fetcher);
 
   const submitHandler = useCallback(async () => {
     setIsLoading(true);
@@ -36,6 +43,7 @@ export default function Home() {
       console.log("urls:", urls);
       setBaseUrls(urls);
       setLinkStatuses({}); // Reset statuses on new fetch
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       setError(error.message);
       console.error("Error:", error.message);
@@ -101,25 +109,38 @@ export default function Home() {
           </CardBody>
         </Card>
         <div className="response--block mt-6">
-          {baseUrls?.map((url) => (
-            <Card key={url} className="mt-4">
-              <CardBody className={`flex-row justify-between`}>
-                <Link
-                  href={url}
-                  isExternal
-                  showAnchorIcon
-                  color={linkStatuses[url]}
-                  className="truncate"
+          {!isLoading &&
+            baseUrls?.map((link, index) => (
+              <Card key={index} className="mt-4">
+                <CardBody
+                  className={`flex-row justify-between place-items-center`}
                 >
-                  {url}
-                </Link>
-                <EachLinkChecker
-                  endPoint={url}
-                  onStatusChange={(status) => handleStatusChange(url, status)}
-                />
-              </CardBody>
-            </Card>
-          ))}
+                  <div className="flex place-items-center gap-6">
+                    <p>{index + 1}</p>
+                    <div>
+                      <strong>URL:</strong>{" "}
+                      <Link
+                        href={link.url}
+                        isExternal
+                        showAnchorIcon
+                        color={linkStatuses[link.url]}
+                        className="truncate"
+                      >
+                        {link.url}
+                      </Link>
+                      <br />
+                      <strong>Parent URL:</strong> {link.parentUrl || "N/A"}
+                    </div>
+                  </div>
+                  <EachLinkChecker
+                    endPoint={link.url}
+                    onStatusChange={(status) =>
+                      handleStatusChange(link.url, status)
+                    }
+                  />
+                </CardBody>
+              </Card>
+            ))}
         </div>
       </div>
     </>

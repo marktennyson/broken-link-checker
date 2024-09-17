@@ -33,6 +33,14 @@ const EachLinkChecker: React.FC<EachLinkCheckerProps> = ({
     );
   }
 
+  if (error) {
+    return (
+      <Chip size="lg" color="danger">
+        Broken
+      </Chip>
+    );
+  }
+
   return (
     <div className={className}>
       {data ? (
