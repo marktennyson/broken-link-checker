@@ -4,7 +4,6 @@ import {
   NavbarBrand,
   NavbarContent,
   NavbarItem,
-  // Link,
   Button,
 } from "@nextui-org/react";
 import Logo from "./Logos/Logo";
@@ -25,7 +24,9 @@ const Header: React.FC = () => {
           <ThemeSwitcher setCurrentTheme={setCurrentTheme} />
         </NavbarItem>
         <NavbarItem>
-          <Button variant="faded">Login</Button>
+          <Button isDisabled variant="faded">
+            Login
+          </Button>
         </NavbarItem>
       </NavbarContent>
     </Navbar>

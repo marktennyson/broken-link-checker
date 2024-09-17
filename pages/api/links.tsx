@@ -9,7 +9,7 @@ export default async function handler(
   let websiteUrl: string = req.query.url as string;
 
   if (!websiteUrl.startsWith("http")) {
-    websiteUrl = `http://${websiteUrl}`;
+    websiteUrl = `https://${websiteUrl}`;
   }
 
   if (!websiteUrl) {
@@ -33,13 +33,18 @@ export default async function handler(
         const linkDomain = new URL(resolvedLink).hostname;
 
         // Only include links that match the base domain (internal links)
-        if (linkDomain === url.hostname) {
+        if (linkDomain === url.hostname && !links.includes(resolvedLink)) {
           links.push(resolvedLink);
         }
       }
     });
 
-    return res.status(200).json(links);
+    // Filter out the root index path (/) and URLs that end with a '/'
+    const filteredLinks = links.filter(
+      (link) => link !== websiteUrl && link !== `${websiteUrl}/`
+    );
+
+    return res.status(200).json(filteredLinks);
   } catch (error) {
     console.error("error:", error);
     return res.status(500).json({ error: "Failed to fetch the page" });
