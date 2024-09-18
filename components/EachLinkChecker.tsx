@@ -6,14 +6,17 @@ export interface EachLinkCheckerProps {
   className?: string;
   endPoint: string;
   onStatusChange: (status: "success" | "danger") => void;
+  onCall: (endPoint: string) => void; // Update this signature
 }
 
-const fetcher = (url: string) => fetch(url).then((res) => res.ok);
+const fetcher = (url: string) =>
+  fetch(url).then((res) => res.status >= 200 && res.status < 400);
 
 const EachLinkChecker: React.FC<EachLinkCheckerProps> = ({
   className,
   endPoint,
   onStatusChange,
+  onCall,
 }) => {
   const { data, error } = useSWR(endPoint, fetcher);
 
@@ -25,7 +28,12 @@ const EachLinkChecker: React.FC<EachLinkCheckerProps> = ({
     }
   }, [data, error, onStatusChange]);
 
-  if (!data && !error) {
+  // Call the onCall function with the endPoint value
+  React.useEffect(() => {
+    onCall(endPoint);
+  }, [endPoint, onCall]); // Ensure this is called when endPoint changes
+
+  if (data === null && !error) {
     return (
       <Chip size="lg" color="default">
         <Spinner />

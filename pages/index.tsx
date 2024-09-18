@@ -5,8 +5,11 @@ import {
   CardHeader,
   Button,
   Link,
+  Select,
+  SelectItem,
 } from "@nextui-org/react";
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
+import type { NextPage } from "next";
 import LinksLogo from "@/components/Logos/Links";
 import GlassLogo from "@/components/Logos/Glass";
 import useSWRMutation from "swr/mutation";
@@ -19,9 +22,11 @@ const EachLinkChecker = dynamic(() => import("@/components/EachLinkChecker"), {
   suspense: true,
 });
 
-export default function Home() {
+const Home: NextPage = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isSelectDisabled, setIsSelectDisabled] = useState<boolean>(true);
   const [websiteUrl, setWebsiteUrl] = useState("");
+  const [checkedUrls, setCheckedUrls] = useState<string[]>([]);
   const [baseUrls, setBaseUrls] = useState<
     { url: string; parentUrl: string | null }[] | null
   >(null); // Updated to support url and parentUrl
@@ -40,7 +45,6 @@ export default function Home() {
 
     try {
       const urls = await fetchEndpointsTrigger();
-      console.log("urls:", urls);
       setBaseUrls(urls);
       setLinkStatuses({}); // Reset statuses on new fetch
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -66,6 +70,24 @@ export default function Home() {
     },
     []
   );
+
+  const updateselCheckedUrls = (url: string) => {
+    setCheckedUrls((prevUrls) => {
+      if (!prevUrls.includes(url)) {
+        return [...prevUrls, url];
+      } else {
+        return prevUrls;
+      }
+    });
+  };
+
+  useEffect(() => {
+    console.log("baseUrls:", baseUrls?.length);
+    console.log("checkedUrls:", checkedUrls.length);
+    if (baseUrls && checkedUrls.length === baseUrls.length) {
+      setIsSelectDisabled(false); // Enable the select dropdown
+    }
+  }, [checkedUrls, baseUrls]);
 
   return (
     <>
@@ -108,9 +130,23 @@ export default function Home() {
             )}
           </CardBody>
         </Card>
-        <div className="response--block mt-6">
-          {!isLoading &&
-            baseUrls?.map((link, index) => (
+        {!isLoading && baseUrls?.length && (
+          <div className="response--block mt-6">
+            <div className="flex justify-end">
+              <Select
+                className="max-w-sm"
+                label="Broken Filter"
+                placeholder="Select your choice"
+                size="sm"
+                selectedKeys={["all"]}
+                isDisabled={isSelectDisabled}
+              >
+                <SelectItem key={"all"}>All</SelectItem>
+                <SelectItem key={"working"}>Working</SelectItem>
+                <SelectItem key={"broken"}>Broken</SelectItem>
+              </Select>
+            </div>
+            {baseUrls?.map((link, index) => (
               <Card key={index} className="mt-4">
                 <CardBody
                   className={`flex-row justify-between place-items-center`}
@@ -137,12 +173,16 @@ export default function Home() {
                     onStatusChange={(status) =>
                       handleStatusChange(link.url, status)
                     }
+                    onCall={updateselCheckedUrls}
                   />
                 </CardBody>
               </Card>
             ))}
-        </div>
+          </div>
+        )}
       </div>
     </>
   );
-}
+};
+
+export default Home;
